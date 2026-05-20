@@ -1,0 +1,50 @@
+name: Full24TH Scraper
+
+on:
+
+  workflow_dispatch:
+
+  schedule:
+    - cron: "*/15 * * * *"
+
+jobs:
+
+  scrape:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Chrome
+        uses: browser-actions/setup-chrome@v1
+
+      - name: Install ChromeDriver
+        uses: nanasess/setup-chromedriver@v2
+
+      - name: Install Packages
+        run: |
+          pip install -r requirements.txt
+
+      - name: Run Scraper
+        run: python full24th-script.py
+
+      - name: Commit Files
+        run: |
+
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+
+          git add .
+
+          git commit -m "auto update"
+
+          git push
+```
