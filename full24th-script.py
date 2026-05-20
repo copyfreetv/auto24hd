@@ -21,17 +21,15 @@ from datetime import datetime
 # CONFIG
 # =========================================
 
-URL =
-"https://full24th.com/"
+URL = "https://full24th.com/"
 
-SAVE_DIR =
-"output"
+SAVE_DIR = "output"
 
-JSON_FILE =
-os.path.join(
+JSON_FILE = os.path.join(
     SAVE_DIR,
     "full24th.json"
 )
+
 
 M3U_FILE =
 os.path.join(
