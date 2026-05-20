@@ -13,8 +13,6 @@ import time
 import os
 import re
 
-from datetime import datetime
-
 
 
 # =========================================
@@ -22,7 +20,6 @@ from datetime import datetime
 # =========================================
 
 URL = "https://full24th.com/"
-
 SAVE_DIR = "output"
 
 JSON_FILE = os.path.join(
@@ -30,9 +27,7 @@ JSON_FILE = os.path.join(
     "full24th.json"
 )
 
-
-M3U_FILE =
-os.path.join(
+M3U_FILE = os.path.join(
     SAVE_DIR,
     "live.m3u"
 )
@@ -47,71 +42,36 @@ def extract_m3u8(url):
 
     try:
 
-        r =
-        requests.get(
-
+        r = requests.get(
             url,
-
             headers={
-
-                "User-Agent":
-                "Mozilla/5.0",
-
-                "Referer":
-                "https://full24th.com/"
-
+                "User-Agent": "Mozilla/5.0",
+                "Referer": "https://full24th.com/"
             },
-
             timeout=10
-
         )
 
         html = r.text
 
-
-        # =================================
-        # direct m3u8
-        # =================================
-
-        match =
-        re.search(
-
+        match = re.search(
             r'https?:\/\/[^"\']+\.m3u8[^"\']*',
-
             html
-
         )
 
         if match:
-
             return match.group(0)
 
-
-        # =================================
-        # escaped
-        # =================================
-
-        match =
-        re.search(
-
+        match = re.search(
             r'https?:\\\/\\\/[^"]+\.m3u8[^"]*',
-
             html
-
         )
 
         if match:
-
-            return (
-                match.group(0)
-                .replace("\\/","/")
-            )
-
+            return match.group(0).replace("\\/","/")
 
         return url
 
     except:
-
         return url
 
 
@@ -123,45 +83,30 @@ def extract_m3u8(url):
 options = Options()
 
 options.add_argument("--headless")
-
 options.add_argument("--no-sandbox")
-
-options.add_argument(
-    "--disable-dev-shm-usage"
-)
-
-options.add_argument(
-    "--window-size=1920,1080"
-)
+options.add_argument("--disable-dev-shm-usage")
+options.add_argument("--window-size=1920,1080")
 
 options.add_argument(
     "--disable-blink-features=AutomationControlled"
 )
 
 options.add_experimental_option(
-
     "excludeSwitches",
-
     ["enable-automation"]
-
 )
 
 options.add_experimental_option(
-
     "useAutomationExtension",
-
     False
-
 )
 
 options.add_argument(
-
-"user-agent=Mozilla/5.0 "
-"(Windows NT 10.0; Win64; x64) "
-"AppleWebKit/537.36 "
-"(KHTML, like Gecko) "
-"Chrome/120.0.0.0 Safari/537.36"
-
+    "user-agent=Mozilla/5.0 "
+    "(Windows NT 10.0; Win64; x64) "
+    "AppleWebKit/537.36 "
+    "(KHTML, like Gecko) "
+    "Chrome/120.0.0.0 Safari/537.36"
 )
 
 
@@ -170,16 +115,11 @@ options.add_argument(
 # CHROME DRIVER
 # =========================================
 
-service =
-Service("/usr/bin/chromedriver")
+service = Service("/usr/bin/chromedriver")
 
-driver =
-webdriver.Chrome(
-
+driver = webdriver.Chrome(
     service=service,
-
     options=options
-
 )
 
 
@@ -207,43 +147,33 @@ get: () => undefined
         driver,
         30
     ).until(
-
         EC.presence_of_element_located(
             (
                 By.TAG_NAME,
                 "body"
             )
         )
-
     )
 
     time.sleep(5)
-
 
     # =====================================
     # AUTO SCROLL
     # =====================================
 
-    last_height =
-    driver.execute_script(
+    last_height = driver.execute_script(
         "return document.body.scrollHeight"
     )
 
     while True:
 
         driver.execute_script(
-
-            "window.scrollTo("
-            "0,"
-            "document.body.scrollHeight"
-            ");"
-
+            "window.scrollTo(0, document.body.scrollHeight);"
         )
 
         time.sleep(2)
 
-        new_height =
-        driver.execute_script(
+        new_height = driver.execute_script(
             "return document.body.scrollHeight"
         )
 
@@ -252,9 +182,7 @@ get: () => undefined
 
         last_height = new_height
 
-
-    soup =
-    BeautifulSoup(
+    soup = BeautifulSoup(
         driver.page_source,
         "html.parser"
     )
@@ -271,35 +199,21 @@ finally:
 
 results = []
 
-
-# =========================================
-# MATCH CARDS
-# =========================================
-
-cards =
-soup.select("a")
+cards = soup.select("a")
 
 for card in cards:
 
-    href =
-    card.get("href","")
+    href = card.get("href","")
 
-    text =
-    card.get_text(
+    text = card.get_text(
         " ",
         strip=True
     )
 
-
-    # =====================================
-    # FILTER
-    # =====================================
-
     if not href:
         continue
 
-    if "บอลสด" not in text \
-    and "vs" not in text.lower():
+    if "บอลสด" not in text and "vs" not in text.lower():
         continue
 
 
@@ -307,64 +221,45 @@ for card in cards:
     # TIME
     # =====================================
 
-    time_match =
-    re.search(
-
+    time_match = re.search(
         r'(\d{1,2}:\d{2})',
-
         text
-
     )
 
-    match_time = \
-    time_match.group(1) \
-    if time_match \
-    else "00:00"
-
-
-    # =====================================
-    # TEAM
-    # =====================================
-
-    lines =
-    text.split("\n")
-
-    match_name =
-    text
+    if time_match:
+        match_time = time_match.group(1)
+    else:
+        match_time = "00:00"
 
 
     # =====================================
     # IMAGE
     # =====================================
 
-    img =
-    card.find("img")
+    img = card.find("img")
 
-    image =
-    img.get("src","") \
-    if img \
-    else ""
-
-
-    # =====================================
-    # M3U8
-    # =====================================
-
-    real_url =
-    extract_m3u8(href)
+    if img:
+        image = img.get("src","")
+    else:
+        image = ""
 
 
     # =====================================
-    # TIME SORT
+    # EXTRACT URL
+    # =====================================
+
+    real_url = extract_m3u8(href)
+
+
+    # =====================================
+    # SORT TIME
     # =====================================
 
     try:
 
-        hh,mm =
-        match_time.split(":")
+        hh,mm = match_time.split(":")
 
-        time_sort =
-        int(hh)*60 + int(mm)
+        time_sort = int(hh)*60 + int(mm)
 
     except:
 
@@ -373,26 +268,18 @@ for card in cards:
 
     results.append({
 
-        "time":
-        match_time,
+        "time": match_time,
+        "time_sort": time_sort,
 
-        "time_sort":
-        time_sort,
+        "match": text,
 
-        "match":
-        match_name,
+        "image": image,
 
-        "image":
-        image,
+        "url": real_url,
 
-        "url":
-        real_url,
+        "referer": "https://full24th.com/",
 
-        "referer":
-        "https://full24th.com/",
-
-        "userAgent":
-        "Mozilla/5.0"
+        "userAgent": "Mozilla/5.0"
 
     })
 
@@ -403,13 +290,8 @@ for card in cards:
 # =========================================
 
 results = sorted(
-
     results,
-
-    key=lambda x: (
-        x["time_sort"]
-    )
-
+    key=lambda x: x["time_sort"]
 )
 
 
@@ -430,25 +312,16 @@ os.makedirs(
 # =========================================
 
 with open(
-
     JSON_FILE,
-
     "w",
-
     encoding="utf-8"
-
 ) as f:
 
     json.dump(
-
         results,
-
         f,
-
         ensure_ascii=False,
-
         indent=2
-
     )
 
 
@@ -457,21 +330,16 @@ with open(
 # BUILD M3U
 # =========================================
 
-m3u =
-"#EXTM3U\n"
-
+m3u = "#EXTM3U\n"
 
 for item in results:
 
     m3u += (
-
-f'#EXTINF:-1 '
-f'tvg-logo="{item["image"]}" '
-f'group-title="ฟุตบอล",'
-f'{item["match"]}\n'
-
-f'{item["url"]}\n\n'
-
+        f'#EXTINF:-1 '
+        f'tvg-logo="{item["image"]}" '
+        f'group-title="ฟุตบอล",'
+        f'{item["match"]}\n'
+        f'{item["url"]}\n\n'
     )
 
 
@@ -481,13 +349,9 @@ f'{item["url"]}\n\n'
 # =========================================
 
 with open(
-
     M3U_FILE,
-
     "w",
-
     encoding="utf-8"
-
 ) as f:
 
     f.write(m3u)
@@ -498,14 +362,6 @@ with open(
 # DONE
 # =========================================
 
-print(
-    f"JSON SAVED → {JSON_FILE}"
-)
-
-print(
-    f"M3U SAVED → {M3U_FILE}"
-)
-
-print(
-    f"TOTAL MATCHES → {len(results)}"
-)
+print(f"JSON SAVED → {JSON_FILE}")
+print(f"M3U SAVED → {M3U_FILE}")
+print(f"TOTAL MATCHES → {len(results)}")
